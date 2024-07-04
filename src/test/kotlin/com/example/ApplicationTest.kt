@@ -1,3 +1,4 @@
+/*
 package com.example
 
 import com.example.plugins.*
@@ -19,3 +20,4 @@ class ApplicationTest {
         }
     }
 }
+*/

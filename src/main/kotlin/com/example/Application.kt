@@ -1,6 +1,7 @@
 package com.example
 
-import com.example.api.UserServiceImp
+import com.example.api.UserRepository
+import com.example.api.UserService
 import com.example.api.UserValidator
 import com.example.routes.userRouting
 import io.ktor.serialization.kotlinx.json.*
@@ -16,7 +17,8 @@ fun main() {
 }
 
 fun Application.module() {
-    val userService = UserServiceImp()
+    val userRepository = UserRepository()
+    val userService = UserService(userRepository)
     val userValidator = UserValidator()
 
     install(ContentNegotiation) {

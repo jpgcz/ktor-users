@@ -1,6 +1,6 @@
 package com.example.api
 
-import com.example.models.User
+import com.example.dtos.UserDTO
 import kotlinx.serialization.json.JsonObject
 
 class UserValidator {
@@ -10,7 +10,7 @@ class UserValidator {
     }
 
     //validar valores de los campos
-    fun validateUserFields(user: User): Boolean {
+    fun validateUserFields(user: UserDTO): Boolean {
         return user.id != null &&
                 !user.name.isNullOrBlank() &&
                 user.age != null &&

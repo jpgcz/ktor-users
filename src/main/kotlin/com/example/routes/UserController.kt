@@ -2,7 +2,7 @@ package com.example.routes
 
 import com.example.api.UserService
 import com.example.api.UserValidator
-import com.example.models.User
+import com.example.dtos.UserDTO
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -47,16 +47,16 @@ fun Route.userRouting(userService: UserService, userValidator: UserValidator) {
                 )
             }
 
-            val user = Json.decodeFromString<User>(json)
+            val userDTO = Json.decodeFromString<UserDTO>(json)
 
-            if (!userValidator.validateUserFields(user)) {
+            if (!userValidator.validateUserFields(userDTO)) {
                 return@post call.respondText(
                     "All data must be provided",
                     status = HttpStatusCode.BadRequest
                 )
             }
 
-            userService.addUser(user)
+            userService.addUser(userDTO)
         }
         patch("{id?}") {
             val id = call.parameters["id"]?.let {
@@ -66,7 +66,36 @@ fun Route.userRouting(userService: UserService, userValidator: UserValidator) {
                 status = HttpStatusCode.BadRequest
             )
 
+            val json = call.receiveText()
+            val jsonObject = Json.parseToJsonElement(json).jsonObject
 
+            if (!userValidator.validateUserJson(jsonObject)) {
+                return@patch call.respondText(
+                    "Invalid data or incomplete",
+                    status = HttpStatusCode.BadRequest
+                )
+            }
+
+            val userDTO = Json.decodeFromString<UserDTO>(json)
+
+            if (!userValidator.validateUserFields(userDTO)) {
+                return@patch call.respondText(
+                    "All data must be provided",
+                    status = HttpStatusCode.BadRequest
+                )
+            }
+
+            if (userService.updateUser(id, userDTO)) {
+                call.respondText(
+                    "Successfully updated",
+                    status = HttpStatusCode.Accepted
+                )
+            } else {
+                call.respondText(
+                    "User not found",
+                    status = HttpStatusCode.NotFound
+                )
+            }
         }
         delete("{id?}") {
             val id = call.parameters["id"]?.let {
