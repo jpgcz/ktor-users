@@ -16,7 +16,7 @@ fun Route.userRouting(userService: UserService, userValidator: UserValidator) {
         get {
             val users = userService.getAllUsers()
             if (users.isNotEmpty()) {
-                call.respondText("$users", status = HttpStatusCode.OK)
+                call.respond(users)
             } else {
                 call.respondText("User list is empty", status = HttpStatusCode.NoContent)
             }
