@@ -1,10 +1,13 @@
 pipeline {
-    agent any
+    agent { dockerfile true }
 
     stages {
         stage('Build Docker Image') {
             steps {
-                dockerImage = docker.build("jpgcz/ktor-users:1.0.0")
+                checkout scm
+                script {
+                    dockerImage = docker.build("jpgcz/ktor-users:1.0.0")
+                }
             }
         }
 
@@ -23,6 +26,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
+                    //[WithCredentials]
                     docker.withRegistry('', '259bc10b-38c9-4094-954e-5f9a6f066f92') {
                         dockerImage.push('1.0.0')
                     }
