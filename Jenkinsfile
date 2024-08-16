@@ -2,6 +2,15 @@ pipeline {
     agent { dockerfile true }
 
     stages {
+        stage('Verify Docker') {
+            steps {
+                checkout scm
+                script {
+                    sh 'docker --version'
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 checkout scm

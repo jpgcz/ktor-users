@@ -2,6 +2,7 @@
 Application for managing users.
 
 ## Artifacts requirements
+___
 - Codigo fuente
   - Java 17
   - Port 8080
@@ -10,12 +11,7 @@ Application for managing users.
   - Docker 25.0.3
 - Jenkinsfile
   - Jenkins Server
-
-## Requirements
-___
-Java 17 <br/>
-Kotlin version 1.6.10 <br/>
-Docker
+    - Docker Plugin
 
 ## Run the application
 ___
