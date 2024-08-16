@@ -1,9 +1,9 @@
 # Ktor-users
 Application for managing users.
 
-## Artifacts requirements
 ___
-- Codigo fuente
+## Artifacts requirements
+- Source Code
   - Java 17
   - Port 8080
   - Gradle
@@ -12,24 +12,21 @@ ___
 - Jenkinsfile
   - Jenkins Server
     - Docker Plugin
-
-## Run the application
 ___
 
-Build the docker container
+## Run the application
 
+Build the docker container
 ```bash
 docker build -t ktor-users:1.0.0 .
 ```
 
 Run the docker container
-
 ```bash
 docker run -dp 8080:8080 ktor-users:1.0.0
 ```
-
-# API endpoints
 ___
+# API endpoints
 
 ## GET
 `get all users` [user](#get-user) <br/>
@@ -45,7 +42,7 @@ ___
 `delete user` [/user/id](#delete-userid) <br/>
 ___
 
-### GET user
+### GET /user
 Get all user
 
 **Response**
@@ -93,6 +90,7 @@ Get user by `id`
     "email": "persona1@gmail.com"
 }
 ```
+
 ___
 
 ### POST /user
@@ -110,7 +108,6 @@ Follow this format to enter parameters: `id`, `name`, `age`, `email`.
 | `email` | required | string |                                              |
 
 ___
-
 
 ### PATCH /user/id
 Update user information requires a specific format.

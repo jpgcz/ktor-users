@@ -1,12 +1,23 @@
 pipeline {
-    agent { dockerfile true }
+    agent any
 
     stages {
-        stage('Build Docker Image') {
+        stage('Build Docker Image with Kaniko') {
             steps {
-                checkout scm
                 script {
-                    dockerImage = docker.build("jpgcz/ktor-users:1.0.0")
+                    withCredentials([string(credentialsId: '259bc10b-38c9-4094-954e-5f9a6f066f92', variable: 'DOCKER_PASSWORD')]) {
+                    sh """
+                    mkdir -p /kaniko/.docker
+                    echo '{ "auths": { "https://index.docker.io/v1/": { "username": "${DOCKER_USERNAME}", "password": "${DOCKER_PASSWORD}" } } }' > /kaniko/.docker/config.json
+                    docker run --rm \
+                    -v `pwd`:/workspace \
+                    -v /kaniko/.docker:/kaniko/.docker \
+                    gcr.io/kaniko-project/executor:latest \
+                    --dockerfile /workspace/Dockerfile \
+                    --context /workspace \
+                    --destination=docker.io/${DOCKER_USERNAME}/ktor-users:1.0.0
+                    """
+                    }
                 }
             }
         }
@@ -15,7 +26,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('', '259bc10b-38c9-4094-954e-5f9a6f066f92') {
-                        dockerImage.push('1.0.0')
+                        sh "docker push ${DOCKER_USERNAME}/ktor-users:1.0.0"Z
                     }
                 }
             }
