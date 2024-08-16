@@ -5,7 +5,7 @@ pipeline {
         stage('Build Docker Image with Kaniko') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: '259bc10b-38c9-4094-954e-5f9a6f066f92', variable: 'DOCKER_PASSWORD')]) {
+                    withCredentials([string(credentialsId: '259bc10b-38c9-4094-954e-5f9a6f066f92', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     sh """
                     mkdir -p /kaniko/.docker
                     echo '{ "auths": { "https://index.docker.io/v1/": { "username": "${DOCKER_USERNAME}", "password": "${DOCKER_PASSWORD}" } } }' > /kaniko/.docker/config.json
