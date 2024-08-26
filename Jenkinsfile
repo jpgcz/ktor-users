@@ -4,12 +4,12 @@ pipeline {
     stages {
         stage('Build Docker Image') {
             environment {
-                PATH = "/usr/local/bin:$PATH"
+                PATH = "/usr/local/bin:$PATH"  // Correctly modifying PATH
             }
             steps {
                 checkout scm
                 script {
-                    dockerImage = /usr/local/bin/docker docker.build("jpgcz/ktor-users:1.0.0")
+                    dockerImage = docker.build("jpgcz/ktor-users:1.0.0")
                 }
             }
         }
