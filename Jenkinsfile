@@ -1,11 +1,8 @@
 pipeline {
-    agent { dockerfile true }
+    agent docker
 
     stages {
         stage('Build Docker Image') {
-            environment {
-                PATH = "/usr/local/bin:$PATH"  // Correctly modifying PATH
-            }
             steps {
                 checkout scm
                 script {
