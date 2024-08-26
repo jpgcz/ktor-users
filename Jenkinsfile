@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Build Docker Image') {
             environment {
-                PATH = "/usr/local/bin:$PATH"
+                PATH = "/usr/local/bin/docker:$PATH"
             }
             steps {
                 checkout scm
