@@ -13,6 +13,10 @@ ENV PATH=$PATH:/opt/gradle/gradle-8.10/bin
 
 WORKDIR /ktor-users
 
+# Copy gradle files first for better caching
+COPY build.gradle.kts settings.gradle.kts gradle.properties ./
+COPY gradle gradle/
+
 COPY . .
 
 # Build & run the application
