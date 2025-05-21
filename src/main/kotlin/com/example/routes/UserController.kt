@@ -101,7 +101,7 @@ fun Route.userRouting(userService: UserService, userValidator: UserValidator) {
             val id = call.parameters["id"]?.let {
                 userValidator.validateId(it)
             } ?: return@delete call.respondText(
-                "Id not found",
+                "id not found",
                 status = HttpStatusCode.BadRequest
             )
 

@@ -30,11 +30,30 @@ dependencies {
     testImplementation("io.ktor:ktor-server-tests-jvm:2.3.4")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.8.22")
     testImplementation("io.ktor:ktor-server-test-host-jvm:2.3.4")
+    testImplementation("org.mockito:mockito-core:5.3.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.0.0")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform()
+    useJUnit()
 }
+
+val acceptanceTest by tasks.registering(Test::class) {
+    description = "Runs acceptance tests."
+    group = "verification"
+    
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    
+    filter {
+        includeTestsMatching("*AcceptanceTest")
+    }
+    
+    systemProperty("test.env", project.findProperty("env") ?: "dev")
+}
+
 
 kotlin {
     jvmToolchain {

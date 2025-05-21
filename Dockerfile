@@ -15,6 +15,8 @@ WORKDIR /ktor-users
 
 COPY . .
 
+EXPOSE 8080
+
 # Build & run the application
 RUN gradle build --no-daemon
 CMD ["gradle", "run"]
