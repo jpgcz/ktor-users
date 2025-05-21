@@ -1,6 +1,5 @@
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -34,11 +33,5 @@ out/
 
 ### VS Code ###
 .vscode/
-/build.gradle.kts
-/gradle.properties
-/gradle/wrapper/gradle-wrapper.jar
-/gradle/wrapper/gradle-wrapper.properties
-/gradlew
-/gradlew.bat
 /src/main/resources/logback.xml
-/settings.gradle.kts
+.DS_Store
