@@ -23,7 +23,6 @@ pipeline {
             steps {
                 sh 'docker --version'
                 sh 'sudo docker ps || docker ps'
-                docker.ps
             }
         }
         
