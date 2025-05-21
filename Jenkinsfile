@@ -18,13 +18,6 @@ pipeline {
                 sh 'chmod +x ./gradlew || true'
             }
         }
-
-        stage('Check Docker') {
-            steps {
-                sh 'docker --version'
-                sh 'sudo docker ps || docker ps'
-            }
-        }
         
         stage('Determine Version') {
             steps {
@@ -116,15 +109,8 @@ pipeline {
                         dockerImage.push("${env.APP_VERSION}-dev")
                     }
 
-                    // Update version in application
-                    sh "sed -i 's/const val APP_VERSION = \".*\"/const val APP_VERSION = \"${env.APP_VERSION}\"/' src/main/kotlin/com/example/Application.kt"
-                    
                     // Deploy to dev environment
-                    sh '''
-                    docker-compose -f docker-compose.dev.yml down
-                    export APP_VERSION=${APP_VERSION}
-                    docker-compose -f docker-compose.dev.yml up -d
-                    '''
+                    docker.image("jpgcz/ktor-users:${env.APP_VERSION}").run("-p 8081:8080 -e ENVIRONMENT=development -e APP_VERSION=${env.APP_VERSION} --name ktor-users-dev")
                 }
             }
         }
