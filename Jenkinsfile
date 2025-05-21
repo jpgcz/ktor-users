@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'docker-agent'
+    }
 
     parameters {
         string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Branch to build')
@@ -18,7 +20,7 @@ pipeline {
                 sh 'chmod +x ./gradlew || true'
             }
         }
-        
+
         stage('Determine Version') {
             steps {
                 script {
