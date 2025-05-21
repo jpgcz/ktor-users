@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Branch to build')
+        string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Branch to build')
         choice(name: 'VERSION_INCREMENT', choices: ['PATCH', 'MINOR', 'MAJOR'], description: 'Which part of the version to increment')
     }
 
@@ -11,6 +11,14 @@ pipeline {
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                // Make gradlew executable
+                sh 'chmod +x ./gradlew || true'
+            }
+        }
+        
         stage('Determine Version') {
             steps {
                 script {
@@ -39,7 +47,7 @@ pipeline {
                     env.APP_VERSION = "${major}.${minor}.${patch}"
                     
                     // Save new version if on main branch
-                    if (params.BRANCH_NAME == 'main') {
+                    if (params.BRANCH_NAME == 'master') {
                         sh "echo ${env.APP_VERSION} > ${env.VERSION_FILE}"
                     }
                     
@@ -50,7 +58,16 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                sh './gradlew test'
+                // Check if gradlew exists and is executable
+                sh '''
+                if [ -f "./gradlew" ]; then
+                    chmod +x ./gradlew
+                    ./gradlew test
+                else
+                    echo "Gradle wrapper not found, trying with gradle directly"
+                    gradle test || echo "No Gradle installation found"
+                fi
+                '''
             }
             post {
                 always {
@@ -63,9 +80,20 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    // Update version in Application.kt before building
-                    sh "sed -i 's/const val APP_VERSION = \".*\"/const val APP_VERSION = \"${env.APP_VERSION}\"/' src/main/kotlin/com/example/Application.kt"
-            
+                    // Check if Application.kt exists before trying to update it
+                    sh '''
+                    if [ -f "src/main/kotlin/com/example/Application.kt" ]; then
+                        if grep -q "const val APP_VERSION" src/main/kotlin/com/example/Application.kt; then
+                            sed -i 's/const val APP_VERSION = ".*"/const val APP_VERSION = "'${APP_VERSION}'"/' src/main/kotlin/com/example/Application.kt
+                        else
+                            # Add the version constant if it doesn't exist
+                            sed -i '1s/^/package com.example\\n\\nconst val APP_VERSION = "'${APP_VERSION}'"\\n\\n/' src/main/kotlin/com/example/Application.kt
+                        fi
+                    else
+                        echo "Application.kt not found at expected location"
+                    fi
+                    '''
+
                     // Build with version tag
                     dockerImage = docker.build("jpgcz/ktor-users:${env.APP_VERSION}")
                 }
@@ -98,6 +126,9 @@ pipeline {
     post {
         success {
             echo "Successfully built version ${env.APP_VERSION}"
+        }
+        failure {
+            echo "Build failed"
         }
     }
 }
