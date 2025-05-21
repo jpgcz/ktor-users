@@ -52,7 +52,11 @@ pipeline {
             }
             post {
                 always {
-                    junit '**/build/test-results/test/*.xml' allowEmptyResults: true
+                    try {
+                        junit '**/build/test-results/test/*.xml'
+                    } catch (Exception e) {
+                        echo "No test results found or error processing test results: ${e.message}"
+                    }
                 }
             }
         }
