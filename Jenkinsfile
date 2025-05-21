@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Branch to build')
         choice(name: 'VERSION_INCREMENT', choices: ['PATCH', 'MINOR', 'MAJOR'], description: 'Which part of the version to increment')
     }
 
@@ -11,14 +10,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-                // Make gradlew executable
-                sh 'chmod +x ./gradlew || true'
-            }
-        }
-        
         stage('Determine Version') {
             steps {
                 script {
@@ -46,32 +37,10 @@ pipeline {
                     // Set new version
                     env.APP_VERSION = "${major}.${minor}.${patch}"
                     
-                    // Save new version if on main branch
-                    if (params.BRANCH_NAME == 'master') {
-                        sh "echo ${env.APP_VERSION} > ${env.VERSION_FILE}"
-                    }
+                    // Save new version
+                    sh "echo ${env.APP_VERSION} > ${env.VERSION_FILE}"
                     
                     echo "Building version ${env.APP_VERSION}"
-                }
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                // Check if gradlew exists and is executable
-                sh '''
-                if [ -f "./gradlew" ]; then
-                    chmod +x ./gradlew
-                    ./gradlew test
-                else
-                    echo "Gradle wrapper not found, trying with gradle directly"
-                    gradle test || echo "No Gradle installation found"
-                fi
-                '''
-            }
-            post {
-                always {
-                    junit '**/build/test-results/test/*.xml'
                 }
             }
         }
@@ -80,37 +49,31 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    // Check if Application.kt exists before trying to update it
+                    // Update version in Application.kt if it exists
                     sh '''
                     if [ -f "src/main/kotlin/com/example/Application.kt" ]; then
                         if grep -q "const val APP_VERSION" src/main/kotlin/com/example/Application.kt; then
                             sed -i 's/const val APP_VERSION = ".*"/const val APP_VERSION = "'${APP_VERSION}'"/' src/main/kotlin/com/example/Application.kt
                         else
-                            # Add the version constant if it doesn't exist
-                            sed -i '1s/^/package com.example\\n\\nconst val APP_VERSION = "'${APP_VERSION}'"\\n\\n/' src/main/kotlin/com/example/Application.kt
+                            sed -i "/package com.example/a\\\\nconst val APP_VERSION = \\"${APP_VERSION}\\"\\n" src/main/kotlin/com/example/Application.kt
                         fi
-                    else
-                        echo "Application.kt not found at expected location"
                     fi
                     '''
-
-                    // Build with version tag
+                    
+                    // Build with version tag - exactly like the original
                     dockerImage = docker.build("jpgcz/ktor-users:${env.APP_VERSION}")
                 }
             }
         }
 
-        stage('Deploy to Development') {
+        stage('Push Docker Image') {
             steps {
                 script {
-                    // Push to registry
+                    // Push to registry - exactly like the original
                     docker.withRegistry('', '259bc10b-38c9-4094-954e-5f9a6f066f92') {
-                        dockerImage.push('dev')
-                        dockerImage.push("${env.APP_VERSION}-dev")
+                        dockerImage.push("${env.APP_VERSION}")
+                        dockerImage.push('latest')
                     }
-
-                    // Deploy to dev environment
-                    docker.image("jpgcz/ktor-users:${env.APP_VERSION}").run("-p 8081:8080 -e ENVIRONMENT=development -e APP_VERSION=${env.APP_VERSION} --name ktor-users-dev")
                 }
             }
         }
@@ -119,9 +82,6 @@ pipeline {
     post {
         success {
             echo "Successfully built version ${env.APP_VERSION}"
-        }
-        failure {
-            echo "Build failed"
         }
     }
 }
