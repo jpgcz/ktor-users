@@ -1,4 +1,4 @@
-# Ktor-users
+# Ktor-users [![CodeQL Advanced](https://github.com/jpgcz/ktor-users/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/jpgcz/ktor-users/actions/workflows/codeql.yml) [![Pull Request CI](https://github.com/jpgcz/ktor-users/actions/workflows/pr-workflow.yml/badge.svg)](https://github.com/jpgcz/ktor-users/actions/workflows/pr-workflow.yml)
 Application for managing users.
 
 ___
