@@ -4,6 +4,12 @@ Application for managing users.
 
 ___
 
+## Build Status
+
+To see the build status, you need to:
+1. Configure Jenkins to expose the badge endpoint
+2. Add the Email Notification plugin to Jenkins
+
 ## Artifacts requirements
 
 - Source Code
@@ -15,6 +21,8 @@ ___
 - Jenkinsfile
   - Jenkins Server
     - Docker Plugin
+    - Email Extension Plugin
+    - Embeddable Build Status Plugin
 
 ___
 
@@ -158,28 +166,4 @@ Response:
 
 ```json lines
 Successfully removed
-```
-
-## Script Usage for Deployment
-
-### How to Use
-
-For development environment (default):
-
-``` bash
-sudo ./app-setup.sh
-# or explicitly
-sudo ./app-setup.sh --env dev
-```
-
-For production environment:
-
-``` bash
-sudo ./app-setup.sh --env prod
-```
-
-You can also specify a custom port:
-
-``` bash
-sudo ./app-setup.sh --env prod --port 8082
 ```

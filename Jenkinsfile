@@ -9,12 +9,32 @@ pipeline {
     }
 
     environment {
+        AWS_REGION = "us-east-2"
         VERSION_FILE = ".version"
-        GITHUB_TOKEN = credentials('github-token')
-        DOCKER_REGISTRY_CREDS = '259bc10b-38c9-4094-954e-5f9a6f066f92'
     }
 
     stages {
+        stage('Fetch Secrets'){
+            steps {
+                script {
+                    // Retrieve secrets from AWS Secrets Manager
+                    def githubSecret = sh(
+                        script: "aws secretsmanager get-secret-value --secret-id github/token --query SecretString --output text --region ${AWS_REGION}",
+                        returnStdout: true
+                    ).trim()
+                    
+                    env.GITHUB_TOKEN = githubSecret
+                    
+                    def dockerSecret = sh(
+                        script: "aws secretsmanager get-secret-value --secret-id docker/registry-creds --query SecretString --output text --region ${AWS_REGION}",
+                        returnStdout: true
+                    ).trim()
+                    
+                    env.DOCKER_REGISTRY_CREDS = dockerSecret
+                }
+            }
+        }
+
         stage('Determine Version') {
             steps {
                 script {
@@ -98,8 +118,22 @@ pipeline {
         stage('Push to Registry') {
             steps {
                 script {
-                    // Push to registry with appropriate tags
-                    docker.withRegistry('', env.DOCKER_REGISTRY_CREDS) {
+                    // Parse the Docker credentials JSON from Secrets Manager
+                    def dockerCredsJson = readJSON text: env.DOCKER_REGISTRY_CREDS
+                    
+                    // Use the credentials to authenticate with Docker registry
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'docker-temp-creds', 
+                            usernameVariable: 'DOCKER_USER', 
+                            passwordVariable: 'DOCKER_PASS',
+                            username: dockerCredsJson.username,
+                            password: dockerCredsJson.password
+                        )
+                    ]) {
+                        sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
+                        
+                        // Push to registry with appropriate tags
                         dockerImage.push("${env.APP_VERSION}")
                         dockerImage.push("${env.DOCKER_TAG}")
                     }
@@ -150,6 +184,56 @@ pipeline {
     }
 
     post {
+        always {
+            script {
+                if (params.ENVIRONMENT == 'prod' && env.BRANCH_NAME == 'master') {
+                    // Update README with status badge
+                    try {
+                        // Generate badge URL
+                        def badgeUrl = "${env.JENKINS_URL}/buildStatus/icon?job=${env.JOB_NAME}&subject=build&status=${currentBuild.currentResult}"
+                        
+                        // Check if README exists and update it
+                        if (fileExists('README.md')) {
+                            def readmeContent = readFile('README.md')
+                            if (!readmeContent.contains('![Build Status]')) {
+                                // Add badge at the top of README
+                                def updatedContent = "![Build Status](${badgeUrl})\n\n" + readmeContent
+                                writeFile file: 'README.md', text: updatedContent
+                                
+                                // Parse GitHub credentials from Secrets Manager
+                                def githubCredsJson = readJSON text: env.GITHUB_TOKEN
+                                
+                                // Commit and push the change using GitHub token
+                                sh """
+                                git config user.email "jenkins@example.com"
+                                git config user.name "Jenkins"
+                                git add README.md
+                                git commit -m "Add build status badge [ci skip]"
+                                git remote set-url origin https://${githubCredsJson.token}@github.com/jpgcz/ktor-users.git
+                                git push origin master
+                                """
+                            }
+                        }
+                    } catch (Exception e) {
+                        echo "Failed to update README with status badge: ${e.message}"
+                    }
+                }
+                
+                // Send email notification
+                // emailext (
+                //     subject: "Build ${currentBuild.currentResult}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                //     body: """<p>Build Status: ${currentBuild.currentResult}</p>
+                //         <p>Build: ${env.BUILD_NUMBER}</p>
+                //         <p>Job: ${env.JOB_NAME}</p>
+                //         <p>Environment: ${params.ENVIRONMENT}</p>
+                //         <p>Version: ${env.APP_VERSION}</p>
+                //         <p>Check console output at <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a></p>""",
+                //     recipientProviders: [[$class: 'DevelopersRecipientProvider'], [$class: 'RequesterRecipientProvider']],
+                //     to: '${env.DEFAULT_RECIPIENTS}',
+                //     mimeType: 'text/html'
+                // )
+            }
+        }
         success {
             echo "Successfully built and deployed version ${env.APP_VERSION} to ${params.ENVIRONMENT} environment"
         }

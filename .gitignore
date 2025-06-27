@@ -35,3 +35,4 @@ out/
 .vscode/
 /src/main/resources/logback.xml
 .DS_Store
+gradle/wrapper/gradle-wrapper.jar
