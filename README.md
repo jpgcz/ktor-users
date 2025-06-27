@@ -1,8 +1,17 @@
 # Ktor-users
+
 Application for managing users.
 
 ___
+
+## Build Status
+
+To see the build status, you need to:
+1. Configure Jenkins to expose the badge endpoint
+2. Add the Email Notification plugin to Jenkins
+
 ## Artifacts requirements
+
 - Source Code
   - Java 17
   - Port 8080
@@ -12,40 +21,48 @@ ___
 - Jenkinsfile
   - Jenkins Server
     - Docker Plugin
+    - Email Extension Plugin
+    - Embeddable Build Status Plugin
+
 ___
 
 ## Run the application
 
-Build the docker container
+Build the docker container:
+
 ```bash
 docker build -t ktor-users:1.0.0 .
 ```
 
-Run the docker container
+Run the docker container:
+
 ```bash
 docker run -dp 8080:8080 ktor-users:1.0.0
 ```
-___
-# API endpoints
 
-## GET
+___
+
+## API endpoints
+
+### GET
 `get all users` [user](#get-user) <br/>
 `get user by id` [userById](#get-userid) <br/>
 
-## POST
+### POST
 `add user` [/user](#post-user) <br/>
 
-## PATCH
+### PATCH
 `update user` [/user/id](#patch-userid) <br/>
 
-## DELETE
+### DELETE
 `delete user` [/user/id](#delete-userid) <br/>
 ___
 
 ### GET /user
+
 Get all user
 
-**Response**
+Response:
 
 ```json lines
 [
@@ -69,18 +86,20 @@ Get all user
     }
 ]
 ```
+
 ___
 
 ### GET /user/id
+
 Get user by `id`
 
-**Parameters**
+Parameters:
 
 |              Name | Required | Type | Description                                  |
 |------------------:|:--------:|:----:|----------------------------------------------|
 |              `id` | required | int  | The id of the user you are looking for <br/> |
 
-**Response**
+Response:
 
 ```json lines
 {
@@ -94,9 +113,10 @@ Get user by `id`
 ___
 
 ### POST /user
+
 Add a user in this application requires to follow a specific format.
 
-**Parameters**
+Parameters:
 
 Follow this format to enter parameters: `id`, `name`, `age`, `email`.
 
@@ -110,9 +130,10 @@ Follow this format to enter parameters: `id`, `name`, `age`, `email`.
 ___
 
 ### PATCH /user/id
+
 Update user information requires a specific format.
 
-**Parameters**
+Parameters:
 
 Follow this format to enter parameters: `id`, `name`, `age`, `email`.
 
@@ -123,7 +144,7 @@ Follow this format to enter parameters: `id`, `name`, `age`, `email`.
 |   `age` | required |  int   |                                              |
 | `email` | required | string |                                              |
 
-**Response**
+Response:
 
 ```json lines
 Successfully updated
@@ -132,15 +153,16 @@ Successfully updated
 ___
 
 ### DELETE /user/id
+
 Delete user.
 
-**Parameters**
+Parameters:
 
 |              Name | Required | Type | Description                                       |
 |------------------:|:--------:|:----:|---------------------------------------------------|
 |              `id` | required | int  | The id of the user you are going to delete  <br/> |
 
-**Response**
+Response:
 
 ```json lines
 Successfully removed

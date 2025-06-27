@@ -1,10 +1,13 @@
 name: Pull Request CI
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches: [ develop, master ]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
 
 jobs:
   test:
